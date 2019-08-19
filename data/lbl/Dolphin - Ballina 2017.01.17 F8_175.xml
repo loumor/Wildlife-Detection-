@@ -1,0 +1,38 @@
+<annotation>
+	<folder>img</folder>
+	<filename>Dolphin - Ballina 2017.01.17 F8_175.jpg</filename>
+	<path>/Users/bjanson/Documents/Backups/uni/EGH/EGH455/Labeling/data/img/Dolphin - Ballina 2017.01.17 F8_175.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>4096</width>
+		<height>2160</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>dolphin</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>1385</xmin>
+			<ymin>649</ymin>
+			<xmax>1441</xmax>
+			<ymax>728</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>dolphin</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>1329</xmin>
+			<ymin>703</ymin>
+			<xmax>1363</xmax>
+			<ymax>808</ymax>
+		</bndbox>
+	</object>
+</annotation>
