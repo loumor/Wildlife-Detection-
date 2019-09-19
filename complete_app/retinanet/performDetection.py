@@ -20,50 +20,60 @@ def retinanetDetection(videoPath):
 
     # Load retinanet model
     print('Loading Retinanet model')
-    modelPath = os.path.join('keras-retinanet-master', 'snapshots', 'inference.h5')
+    modelPath = os.path.join('retinanet', 'snapshots', 'inference.h5')
     model = models.load_model(modelPath, backbone_name='resnet50')
 
     # Label names
-    labelNames = {0: 'shark', 1: 'dolphin', 2: 'surfer'}
-
-    csvOut = []
+    labelNames = {0: 'shark', 1: 'dolphin', 2: 'surfer'}    
 
     # Open video and get info
     videoReader = cv2.VideoCapture(videoPath)
     noFrames = int(videoReader.get(cv2.CAP_PROP_FRAME_COUNT))
     height = int(videoReader.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(videoReader.get(cv2.CAP_PROP_FRAME_WIDTH))
-    fps = int(videoReader.get(cv2.CAP_PROP_FPS))
+    fps = int(videoReader.get(cv2.CAP_PROP_FPS))    
+    videoName = os.path.splitext(os.path.basename(videoPath))[0]
 
-    # Video writer for output video
-    out = cv2.VideoWriter('retinanetProcessed.mp4', cv2.VideoWriter_fourcc(*'MP4V'), fps, (width, height))
+    # List for csv output
+    csvOut = []
+
+    # Video writer for output video    
+    out = cv2.VideoWriter(os.path.join('retinanet','results',videoName+'-retinanet.mp4'),  cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
 
     #print('Performing detection on: {}'.format())
     print('Number of frames to process: {}'.format(noFrames))
 
+    # loop through frames
     for i in range(noFrames):
         print('Frame {}/{}'.format(i,noFrames))
         ret, frame = videoReader.read()
         
+        # frame to draw bounding boxes on
         draw = frame.copy()
         draw = cv2.cvtColor(draw, cv2.COLOR_BGR2RGB)
         
+        # prep frame for detection
         image = preprocess_image(frame)
         image, scale = resize_image(image)
 
+        # perform detection and scale bounding box coordinates
         boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
         boxes /= scale
+                
+        frameDetections = [] # holds csv line for a frame
+        detections = '' # detections for this frame
 
-        frameDetections = ''
-
+        # loop through each detection
         for box, score, label in zip(boxes[0], scores[0], labels[0]):
             # Confidence threshold
             # if score < 0.5:
             #     break                                                     
 
+            # filter out bad detections
             if label in [0, 1, 2]:            
-                if not frameDetections:
-                    frameDetections = '{},'.format(i)
+                # Only add frame line if detections exist
+                if not frameDetections:                    
+                    frameDetections.append(i)
 
                 colour = label_color(label)
             
@@ -72,28 +82,33 @@ def retinanetDetection(videoPath):
 
                 caption = "{} {:.3f}".format(labelNames[label], score)
                 draw_caption(draw, b, caption)
+                
+                # format detection result for csv
+                detection = '{} {} {} {} {} {} '.format(labelNames[label], score, box[0]/width, box[1]/height, box[2]/width, box[3]/height)                
+                detections = detections + detection                
 
-                result = ' {} {} {} {} {} {}'.format(labelNames[label], score, box[0]/width, box[1]/height, box[2]/width, box[3]/height)
-                frameDetections = frameDetections + result
-
+        # draw bounding box and caption
         out.write(draw)
 
+        # append detections to frame csv line
+        frameDetections.append(detections)
+
+        # append frame detections to full csv list
         if frameDetections:
-            csvOut.append([frameDetections])
+            csvOut.append(frameDetections)
 
     videoReader.release()    
     out.release()
-    with open('results.csv', 'w', newline='') as csvFile:
-        writer = csv.writer(csvFile, delimiter=',', quoting=csv.QUOTE_NONE)
-        writer.writerow(csvOut)
-    csvFile.close()
-    # with open('results.csv', 'w', newline='') as csvFile2:
-    #     writer = csv.writer(csvFile2)
-    #     writer.writerows(csvOut)
-    # csvFile2.close()
+
+    # write csv file
+    with open(os.path.join('retinanet','results',videoName+'-results.csv'), 'w', newline='') as csvFile:
+        writer = csv.writer(csvFile)
+        writer.writerows(csvOut)
+    csvFile.close()  
+
     cv2.destroyAllWindows()
-    csvPath = 'results.csv'
-    outPath = 'retinanetProcessed.mp4'
+    csvPath = os.path.join('retinanet','results',videoName+'-results.csv')
+    outPath = os.path.join('retinanet','results',videoName+'-retinanet.mp4')
     return [outPath, csvPath]
 
 if __name__ == '__main__':

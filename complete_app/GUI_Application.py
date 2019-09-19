@@ -9,7 +9,7 @@ import csv, codecs, cv2
 import numpy as np
 import datetime
 from GUI_HelpWindow_Application import ApplicationWindow_Help
-sys.path.insert(0, './keras-retinanet-master')
+sys.path.insert(0, './retinanet')
 import performDetection as PD
 
 # The class that handles the application itself
