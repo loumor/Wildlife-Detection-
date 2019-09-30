@@ -166,6 +166,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         file_array = glob.glob('*.csv')
         self.csv_choice = file_array[row]
         self.ui.label_Ouput_Status.setText("CSV Loaded") # Update Status
+
+        # lock video controls
+        self.ui.button_play.setEnabled(False)
+        self.ui.button_pause.setEnabled(False)
+        self.ui.button_stop.setEnabled(False)
         
         # Open the CSV 
         f = open(self.csv_choice, 'r')
