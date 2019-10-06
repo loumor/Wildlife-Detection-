@@ -20,7 +20,7 @@ def retinanetDetection(videoPath):
 
     # Load retinanet model
     print('Loading Retinanet model')
-    modelPath = os.path.join('retinanet', 'snapshots', 'inference.h5')
+    modelPath = os.path.join('retinanet', 'snapshots', 'inference2.h5')
     model = models.load_model(modelPath, backbone_name='resnet50')
 
     # Label names
@@ -38,6 +38,8 @@ def retinanetDetection(videoPath):
     csvOut = []
 
     # Video writer for output video    
+    if not os.path.exists(os.path.join('retinanet','results')):
+        os.makedirs(os.path.join('retinanet','results'))
     out = cv2.VideoWriter(os.path.join('retinanet','results',videoName+'-retinanet.mp4'),  cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
 
     #print('Performing detection on: {}'.format())
@@ -66,8 +68,8 @@ def retinanetDetection(videoPath):
         # loop through each detection
         for box, score, label in zip(boxes[0], scores[0], labels[0]):
             # Confidence threshold
-            # if score < 0.5:
-            #     break                                                     
+            if score < 0.5:
+                break                                                     
 
             # filter out bad detections
             if label in [0, 1, 2]:            
@@ -84,7 +86,7 @@ def retinanetDetection(videoPath):
                 draw_caption(draw, b, caption)
                 
                 # format detection result for csv
-                detection = '{} {} {} {} {} {} '.format(labelNames[label], score, box[0]/width, box[1]/height, box[2]/width, box[3]/height)                
+                detection = '{} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} '.format(labelNames[label], score, box[0]/width, box[1]/height, box[2]/width, box[3]/height)                
                 detections = detections + detection                
 
         # draw bounding box and caption
@@ -93,8 +95,8 @@ def retinanetDetection(videoPath):
         # append detections to frame csv line
         frameDetections.append(detections)
 
-        # append frame detections to full csv list
-        if frameDetections:
+        # append frame detections to full csv list            
+        if frameDetections != ['']:
             csvOut.append(frameDetections)
 
     videoReader.release()    

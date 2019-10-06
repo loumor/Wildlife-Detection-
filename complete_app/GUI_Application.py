@@ -212,13 +212,17 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.video_player_output.setMedia(QtMultimedia.QMediaContent(QtCore.QUrl.fromLocalFile(out)))
         self.video_player_output.setVideoOutput(self.ui.video_widget_output)   
         
-        # Recieve a CSV 
+        # unlock video controls
+        self.ui.button_play.setEnabled(True)
+        self.ui.button_pause.setEnabled(True)
+        self.ui.button_stop.setEnabled(True)                
         
         # Reset the CSV File Array 
         self.csvFileArray = []
+        self.csv_choice = csvOut
 
         #### For instance of this the CSV IS HARDCODED IN!!!!!! ####
-        self.callback_impCSV()
+        #self.callback_impCSV()
         
         # with open(self.csv_choice) as csvfile:
         #     csvreader = csv.reader(csvfile)
@@ -324,7 +328,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def update_csv(self):
         # Take the Frame number and grab the statistics       
                 
-        data_array = self.csvFileArray[10,1].split(' ') # TODO CAHNGE 10 to self.frame_number-1 (10 gets frame 9)
+        data_array = self.csvFileArray[self.frame_number-1,0].split(' ') # TODO CAHNGE 10 to self.frame_number-1 (10 gets frame 9)
         del data_array[-1] # Remove the ending ' '
         
         # Split each object and its data up 
@@ -351,7 +355,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 if (v == "shark"):
                     sharks += 1
                 if (v == "dolphin"):
-                    dolphin += 1
+                    dolphins += 1
                 if (v == "surfer"):
                     surfers += 1
                     
