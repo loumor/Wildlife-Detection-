@@ -2,7 +2,7 @@
 
 from PyQt5 import QtWidgets
 from GUI_EGH455 import Ui_MainWindow
-import sys
+import sys, os, shutil
 from PyQt5 import QtCore, QtMultimedia, QtMultimediaWidgets, QtWidgets, QtGui
 import glob
 import csv, codecs, cv2
@@ -71,8 +71,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.video_choice = None 
         # Configure the DLM selection 
         self.DLM = None
-        self.ui.DLMcomboBox.addItem("DLM 1")
-        self.ui.DLMcomboBox.addItem("DLM 2")
+        self.ui.DLMcomboBox.addItem("RetinaNet")
+        self.ui.DLMcomboBox.addItem("YOLO")
         # Configure the CSV selection 
         self.csv_choice = None 
         # Configure the CSV Data 
@@ -207,15 +207,24 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             print("Video Choice:" + str(self.video_choice))
             print("CSV Choice:" + str(self.csv_choice))
         
-        out, csvOut = PD.retinanetDetection(self.file)    
+        if self.DLM == 0:
+            out, csvOut = PD.retinanetDetection(self.file)    
+        else:
+            # yolo detection
+            return            
+        
         out = QtCore.QDir.current().filePath(out) 
+        self.output_video_path = out
+        self.output_csv_path = csvOut
         self.video_player_output.setMedia(QtMultimedia.QMediaContent(QtCore.QUrl.fromLocalFile(out)))
         self.video_player_output.setVideoOutput(self.ui.video_widget_output)   
         
         # unlock video controls
         self.ui.button_play.setEnabled(True)
         self.ui.button_pause.setEnabled(True)
-        self.ui.button_stop.setEnabled(True)                
+        self.ui.button_stop.setEnabled(True)       
+        self.ui.saveButton.setEnabled(True)    
+        self.ui.exportCSVButton.setEnabled(True)     
         
         # Reset the CSV File Array 
         self.csvFileArray = []
@@ -246,15 +255,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     
     def callback_save(self):
         # Save Video  
-        
-        # Have the video automatically saved 
-        # The save video button keeps the video if the user acutlly wants it 
-        # If the video is changed then it gets deleted from the directory 
-        pass
+        filePath = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Video', os.path.dirname(os.path.realpath(__file__)), 'MP4(*.mp4)')
+        shutil.copy(self.output_video_path, filePath[0])                
     
     def callback_expCSV(self):
         # Export CSV  
-        pass
+        filePath = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', os.path.dirname(os.path.realpath(__file__)), 'CSV(*.csv)')
+        shutil.copy(self.output_csv_path, filePath[0])
     
     def positionChanged(self):
         # The video position has changed 

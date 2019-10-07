@@ -3,6 +3,7 @@ from keras_retinanet import models
 from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
 from keras_retinanet.utils.visualization import draw_box, draw_caption
 from keras_retinanet.utils.colors import label_color
+from PyQt5 import QtWidgets, QtCore
 
 import matplotlib.pyplot as plt
 import cv2, os, time, csv
@@ -45,9 +46,15 @@ def retinanetDetection(videoPath):
     #print('Performing detection on: {}'.format())
     print('Number of frames to process: {}'.format(noFrames))
 
+    progress = QtWidgets.QProgressDialog("Processing video ...", "Abort", 0, noFrames)
+    progress.setWindowModality(QtCore.Qt.WindowModal)
+    progress.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+
+
     # loop through frames
     for i in range(noFrames):
         print('Frame {}/{}'.format(i,noFrames))
+
         ret, frame = videoReader.read()
         
         # frame to draw bounding boxes on
@@ -98,6 +105,8 @@ def retinanetDetection(videoPath):
         # append frame detections to full csv list            
         if frameDetections != ['']:
             csvOut.append(frameDetections)
+
+        progress.setValue(i)
 
     videoReader.release()    
     out.release()
