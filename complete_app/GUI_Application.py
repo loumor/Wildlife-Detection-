@@ -207,11 +207,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             print("Video Choice:" + str(self.video_choice))
             print("CSV Choice:" + str(self.csv_choice))
         
-        if self.DLM == 0:
-            out, csvOut = PD.retinanetDetection(self.file)    
+        if self.Videoanalyse_CSVanalyse == 0:
+            if self.DLM == 0:
+                out, csvOut = PD.retinanetDetection(self.file)    
+            else:
+                # yolo detection
+                return            
         else:
-            # yolo detection
-            return            
+            out = PD.overlayCSV(self.csv_choice, self.file)
         
         out = QtCore.QDir.current().filePath(out) 
         self.output_video_path = out
