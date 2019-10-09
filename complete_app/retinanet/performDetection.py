@@ -15,6 +15,7 @@ def get_session():
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)
 
+# perform detection and return video with bounding boxes plus results csv
 def retinanetDetection(videoPath):
     # Set tensorflow backend
     keras.backend.tensorflow_backend.set_session(get_session())
@@ -43,13 +44,11 @@ def retinanetDetection(videoPath):
         os.makedirs(os.path.join('retinanet','results'))
     out = cv2.VideoWriter(os.path.join('retinanet','results',videoName+'-retinanet.mp4'),  cv2.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
 
-    #print('Performing detection on: {}'.format())
+    # display progress    
     print('Number of frames to process: {}'.format(noFrames))
-
     progress = QtWidgets.QProgressDialog("Processing video ...", "Abort", 0, noFrames)
     progress.setWindowModality(QtCore.Qt.WindowModal)
     progress.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-
 
     # loop through frames
     for i in range(noFrames):
@@ -84,11 +83,10 @@ def retinanetDetection(videoPath):
                 if not frameDetections:                    
                     frameDetections.append(i+1)
 
-                colour = label_color(label)
-            
+                # draw bounding box and caption
+                colour = label_color(label)          
                 b = box.astype(int)
                 draw_box(draw, b, color=colour)
-
                 caption = "{} {:.3f}".format(labelNames[label], score)
                 draw_caption(draw, b, caption)
                 
@@ -106,6 +104,7 @@ def retinanetDetection(videoPath):
         if frameDetections != ['']:
             csvOut.append(frameDetections)
 
+        # set progress for progress bar
         progress.setValue(i)
 
     videoReader.release()    
@@ -122,23 +121,25 @@ def retinanetDetection(videoPath):
     outPath = os.path.join('retinanet','results',videoName+'-retinanet.mp4')
     return [outPath, csvPath]
 
+# Overlay bounding boxes and captions for imported csv and video
 def overlayCSV(csvFile, videoFile):
     detections = []
+
     with open(csvFile) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')        
         for row in csv_reader:
             detections.append(row)
 
     # Label names
-    labelNames = {0: 'shark', 1: 'dolphin', 2: 'surfer'}    
+    labelNames = ['shark', 'dolphin', 'surfer']
 
     # Open video and get info
-    videoReader = cv2.VideoCapture(videoPath)
+    videoReader = cv2.VideoCapture(videoFile)
     noFrames = int(videoReader.get(cv2.CAP_PROP_FRAME_COUNT))
     height = int(videoReader.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(videoReader.get(cv2.CAP_PROP_FRAME_WIDTH))
     fps = int(videoReader.get(cv2.CAP_PROP_FPS))    
-    videoName = os.path.splitext(os.path.basename(videoPath))[0]
+    videoName = os.path.splitext(os.path.basename(videoFile))[0]
 
     # Video writer for output video    
     if not os.path.exists(os.path.join('retinanet','results')):
@@ -153,7 +154,7 @@ def overlayCSV(csvFile, videoFile):
     progress.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
     # loop through frames
-    for i in range(noFrames):
+    for i in range(1,noFrames+1,1):
         print('Frame {}/{}'.format(i,noFrames))
 
         ret, frame = videoReader.read()
@@ -162,68 +163,24 @@ def overlayCSV(csvFile, videoFile):
         draw = frame.copy()
         draw = cv2.cvtColor(draw, cv2.COLOR_BGR2RGB)                
 
+        # check if there are any detections for frame
         if i in [int(item[0]) for item in detections]:
-            index = [int(item[0]) for item in detections].index(5)
+            index = [int(item[0]) for item in detections].index(i)
             objects = detections[index][1].split()
+            # loop through detections
             for y in range(int(len(objects)/6)):
-                
-
-        # loop through each detection        
-        for box, score, label in zip(boxes[0], scores[0], labels[0]):
-            # Confidence threshold
-            if score < 0.5:
-                break                                                     
-
-            # filter out bad detections
-            if label in [0, 1, 2]:            
-                # Only add frame line if detections exist
-                if not frameDetections:                    
-                    frameDetections.append(i)
-
-                colour = label_color(label)
-            
+                objectIndex = y*6
+                caption = "{} {:.2f}".format(objects[objectIndex], float(objects[objectIndex+1]))
+                box = np.array([float(objects[objectIndex+2])*width, float(objects[objectIndex+3])*height, float(objects[objectIndex+4])*width, float(objects[objectIndex+5])*height])
                 b = box.astype(int)
-                draw_box(draw, b, color=colour)
-
-                caption = "{} {:.3f}".format(labelNames[label], score)
+                colour = label_color(labelNames.index(objects[objectIndex]))                            
+                draw_box(draw, b, color=colour)                
                 draw_caption(draw, b, caption)
-                
-                # format detection result for csv
-                detection = '{} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} '.format(labelNames[label], score, box[0]/width, box[1]/height, box[2]/width, box[3]/height)                
-                detections = detections + detection                
 
-        # draw bounding box and caption
         out.write(draw)
-
-        # append detections to frame csv line
-        frameDetections.append(detections)
-
-        # append frame detections to full csv list            
-        if frameDetections != ['']:
-            csvOut.append(frameDetections)
-
-        progress.setValue(i)
-
+        
     videoReader.release()    
     out.release()
-
-    # write csv file
-    with open(os.path.join('retinanet','results',videoName+'-results.csv'), 'w', newline='') as csvFile:
-        writer = csv.writer(csvFile)
-        writer.writerows(csvOut)
-    csvFile.close()  
-
-    cv2.destroyAllWindows()
-    csvPath = os.path.join('retinanet','results',videoName+'-results.csv')
-    outPath = os.path.join('retinanet','results',videoName+'-retinanet.mp4')
-    return [outPath, csvPath]    
-
-if __name__ == '__main__':
-    out, csvOut = retinanetDetection(r'C:\Users\Marc\Documents\egh455\Shark_whale - Evans 2016.11.18 F1 (2).MP4')
-    out.release()
-    with open('results.csv', 'w', newline='') as csvFile:
-        writer = csv.writer(csvFile)
-        writer.writerows(csvOut)
-
-    csvFile.close()
-    cv2.destroyAllWindows()
+        
+    outPath = os.path.join('retinanet','results',videoName+'-overlay.mp4')
+    return outPath

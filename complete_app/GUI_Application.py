@@ -25,42 +25,50 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.dialogs = list() # For the second winow
         
         # Connect events (like button presses) to functions
-        self.ui.button_play.clicked.connect(self.callback_play) # Play button 
+        self.ui.button_play.clicked.connect(self.callback_play) # Play button         
+        toggleEnabled(self.ui.button_play)
         self.ui.button_pause.clicked.connect(self.callback_pause) # Pause button 
+        toggleEnabled(self.ui.button_pause)
         self.ui.button_stop.clicked.connect(self.callback_stop) # Stop button
+        toggleEnabled(self.ui.button_stop)
         self.ui.Help_toolButton.clicked.connect(self.callback_help) # Help button 
         self.ui.loadDataButton.clicked.connect(self.callback_load) # Load Data button
         self.ui.importCSVButton.clicked.connect(self.callback_impCSV) # Import CSV button
         self.ui.processDataButton.clicked.connect(self.callback_procData) # Process Data button
         self.ui.saveButton.clicked.connect(self.callback_save) # Save video button 
         self.ui.exportCSVButton.clicked.connect(self.callback_expCSV) # Export CSV button 
-        self.ui.videoListWidget.itemClicked.connect(self.callback_playItem) # Video selected 
-        self.ui.videoListWidget.setEnabled(False) # Disable Video Chocie
+        self.ui.videoListWidget.itemClicked.connect(self.callback_playItem) # Video selected         
+        toggleEnabled(self.ui.videoListWidget) # Disable Video Chocie
         self.ui.DLMcomboBox.currentIndexChanged.connect(self.callback_DLMBox) # DLM selection 
         self.ui.csvListWidget.itemClicked.connect(self.callback_loadCSV) # Selected CSV file to load
-        self.ui.csvListWidget.setEnabled(False) # Disable CSV Choice 
+        toggleEnabled(self.ui.csvListWidget) # Disable CSV Choice 
         self.ui.videoOnlyDataButton.clicked.connect(self.callback_videoOnlyDataButton) # Video analysing 
         self.ui.CSVOnlyDataButton.clicked.connect(self.callback_CSVOnlyDataButton) # CSV analysing 
 
         # Shortcuts 
         self.shortcut_play = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+p"), self) # Play Video
         self.shortcut_play.activated.connect(self.callback_play)
+        toggleEnabled(self.shortcut_play)
         self.shortcut_pause = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+o"), self) # Pause Video
         self.shortcut_pause.activated.connect(self.callback_pause)
+        toggleEnabled(self.shortcut_pause)
         self.shortcut_stop = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+k"), self) # Stop Video
         self.shortcut_stop.activated.connect(self.callback_stop)
+        toggleEnabled(self.shortcut_stop)
         self.shortcut_Help = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+h"), self) # Help View
         self.shortcut_Help.activated.connect(self.callback_help)
         self.shortcut_load = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+l"), self) # Load Video
         self.shortcut_load.activated.connect(self.callback_load)
-        self.shortcut_load.setEnabled(False)
+        toggleEnabled(self.shortcut_load)
         self.shortcut_impCSV = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+i"), self) # Import CSV 
         self.shortcut_impCSV.activated.connect(self.callback_impCSV)
-        self.shortcut_impCSV.setEnabled(False)
+        toggleEnabled(self.shortcut_impCSV)
         self.shortcut_saveVid = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+s"), self) # Save Video
         self.shortcut_saveVid.activated.connect(self.callback_save)
+        toggleEnabled(self.shortcut_saveVid)
         self.shortcut_expCSV = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+e"), self) # Export CSV
         self.shortcut_expCSV.activated.connect(self.callback_expCSV)
+        toggleEnabled(self.shortcut_expCSV)
         self.shortcut_EXIT = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+t"), self) # Exit
         self.shortcut_EXIT.activated.connect(self.close)
         
@@ -107,19 +115,21 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             
         # Configure CSV
         self.delimit_frame = '\t'
-        self.number_rows = 0
+        self.number_rows = 0     
 
     def callback_play(self):
         # Start video playback
-        self.video_player_output.play()
-        self.video_player_input.play()
-        self.ui.label_Ouput_Status.setText("Video Playing") # Update Status
+        if self.video_player_input.state() == QtMultimedia.QMediaPlayer.PausedState or self.video_player_input.state() == QtMultimedia.QMediaPlayer.StoppedState:
+            self.video_player_output.play()
+            self.video_player_input.play()
+            self.ui.label_Ouput_Status.setText("Video Playing") # Update Status
 
     def callback_pause(self):
         # Pause video playback
-        self.ui.label_Ouput_Status.setText("Video Paused") # Update Status 
-        self.video_player_input.pause()
-        self.video_player_output.pause()
+        if self.video_player_input.state() == QtMultimedia.QMediaPlayer.PlayingState:
+            self.ui.label_Ouput_Status.setText("Video Paused") # Update Status 
+            self.video_player_input.pause()
+            self.video_player_output.pause()
 
     def callback_stop(self):
         # Pause video playback
@@ -146,18 +156,26 @@ class ApplicationWindow(QtWidgets.QMainWindow):
        
         # Clear the CSV Statistics if it has previously been filled
         #self.ui.statsTableView.clearSpans()
+
+        # enable play buttons and shortcuts
+        toggleEnabled(self.ui.button_play)
+        toggleEnabled(self.ui.button_pause)
+        toggleEnabled(self.ui.button_stop)
+        toggleEnabled(self.shortcut_play)
+        toggleEnabled(self.shortcut_pause)
+        toggleEnabled(self.shortcut_stop)
         
         # Enabled/Disable Buttons 
         # No CSV
         if self.Videoanalyse_CSVanalyse == 0:
-            self.ui.processDataButton.setEnabled(True)
-            self.ui.DLMcomboBox.setEnabled(True)
+            toggleEnabled(self.ui.processDataButton)            
+            toggleEnabled(self.ui.DLMcomboBox)
         else: 
-            # CSV File
-            self.ui.DLMcomboBox.setEnabled(False)
-            self.ui.csvListWidget.setEnabled(True)
-            self.ui.importCSVButton.setEnabled(True)
-            self.shortcut_impCSV.setEnabled(True)
+            # CSV File            
+            toggleEnabled(self.ui.DLMcomboBox)
+            toggleEnabled(self.ui.csvListWidget)
+            toggleEnabled(self.ui.importCSVButton)
+            toggleEnabled(self.shortcut_impCSV)
             
     
     def callback_impCSV(self):
@@ -173,22 +191,22 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.button_stop.setEnabled(False)
         
         # Open the CSV 
-        f = open(self.csv_choice, 'r')
-        mystring = f.read()
-        # Find each new frame 
-        if mystring.count(",") > mystring.count('\t'):
-            if mystring.count(",") > mystring.count(';'):
-                self.delimit_frame = ","
-            elif mystring.count(";") > mystring.count(','):
-                self.delimit_frame = ";"
-            else:
-                self.delimit_frame = "\t"
-        elif mystring.count(";") > mystring.count('\t'):
-            self.delimit_frame = ';'
-        else:
-            self.delimit_frame = "\t"
+        # f = open(self.csv_choice, 'r')
+        # mystring = f.read()
+        # # Find each new frame 
+        # if mystring.count(",") > mystring.count('\t'):
+        #     if mystring.count(",") > mystring.count(';'):
+        #         self.delimit_frame = ","
+        #     elif mystring.count(";") > mystring.count(','):
+        #         self.delimit_frame = ";"
+        #     else:
+        #         self.delimit_frame = "\t"
+        # elif mystring.count(";") > mystring.count('\t'):
+        #     self.delimit_frame = ';'
+        # else:
+        #     self.delimit_frame = "\t"
 
-        f.close()
+        # f.close()
         # Enable/Disable Buttons
         self.ui.processDataButton.setEnabled(True)
         
@@ -209,16 +227,21 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         
         if self.Videoanalyse_CSVanalyse == 0:
             if self.DLM == 0:
-                out, csvOut = PD.retinanetDetection(self.file)    
+                out, csvOut = PD.retinanetDetection(self.file)
+                # Reset the CSV File Array 
+                self.csvFileArray = []
+                self.csv_choice = csvOut
+                self.output_csv_path = csvOut
             else:
                 # yolo detection
                 return            
         else:
             out = PD.overlayCSV(self.csv_choice, self.file)
+            self.csvFileArray = []
+            self.output_csv_path = self.csv_choice
         
         out = QtCore.QDir.current().filePath(out) 
-        self.output_video_path = out
-        self.output_csv_path = csvOut
+        self.output_video_path = out        
         self.video_player_output.setMedia(QtMultimedia.QMediaContent(QtCore.QUrl.fromLocalFile(out)))
         self.video_player_output.setVideoOutput(self.ui.video_widget_output)   
         
@@ -227,28 +250,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.button_pause.setEnabled(True)
         self.ui.button_stop.setEnabled(True)       
         self.ui.saveButton.setEnabled(True)    
-        self.ui.exportCSVButton.setEnabled(True)     
-        
-        # Reset the CSV File Array 
-        self.csvFileArray = []
-        self.csv_choice = csvOut
-
-        #### For instance of this the CSV IS HARDCODED IN!!!!!! ####
-        #self.callback_impCSV()
-        
-        # with open(self.csv_choice) as csvfile:
-        #     csvreader = csv.reader(csvfile)
-        #     for row in csvreader:
-        #         self.csvFileArray.append(row)
-        # self.csvFileArray = np.array(self.csvFileArray)
-        # f.close()
-        # self.update_csv() # Fill the CSV 
+        self.ui.exportCSVButton.setEnabled(True)                         
 
         # Populate the CSV Statistics 
         f = open(self.csv_choice, 'r', encoding='utf-8')
         for row in csv.reader(f, delimiter = self.delimit_frame):
-            self.csvFileArray.append(row)
-        self.csvFileArray = np.array(self.csvFileArray)
+            rowCSV = [int(row[0].split(',')[0]), row[0].split(',')[1].split()]
+            self.csvFileArray.append(rowCSV)        
         f.close()
         self.update_csv() # Fill the CSV 
         
@@ -266,7 +274,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         filePath = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', os.path.dirname(os.path.realpath(__file__)), 'CSV(*.csv)')
         shutil.copy(self.output_csv_path, filePath[0])
     
-    def positionChanged(self):
+    def positionChanged(self, position):
         # The video position has changed 
         # Theres 24 frames per second (frame 0 -> 23 = 1 second)
         self.frame_number = round((self.video_player_input.position()/1000)*24)
@@ -286,7 +294,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.update_csv()
         
         # Update the slider position based on video position 
-        self.ui.horizontalSlider.setValue(self.video_player_input.position())
+        self.ui.horizontalSlider.setValue(position)
 
     def durationChanged(self):
         # Update the slider proportions  
@@ -308,69 +316,59 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def callback_loadCSV(self):
         print(self.ui.csvListWidget.currentRow())
         
-    def recieve_csv(self): 
-        # When the DLM sends back the final CSV update the self.csvFileArray
-        # Open the CSV 
-        f = open(self.csv_choice, 'r')
-        mystring = f.read()
-        # Find each new frame 
-        if mystring.count(",") > mystring.count('\t'):
-            if mystring.count(",") > mystring.count(';'):
-                self.delimit_frame = ","
-            elif mystring.count(";") > mystring.count(','):
-                self.delimit_frame = ";"
-            else:
-                self.delimit_frame = "\t"
-        elif mystring.count(";") > mystring.count('\t'):
-            self.delimit_frame = ';'
-        else:
-            self.delimit_frame = "\t"
+    # def recieve_csv(self): 
+    #     # When the DLM sends back the final CSV update the self.csvFileArray
+    #     # Open the CSV 
+    #     f = open(self.csv_choice, 'r')
+    #     mystring = f.read()
+    #     # Find each new frame 
+    #     if mystring.count(",") > mystring.count('\t'):
+    #         if mystring.count(",") > mystring.count(';'):
+    #             self.delimit_frame = ","
+    #         elif mystring.count(";") > mystring.count(','):
+    #             self.delimit_frame = ";"
+    #         else:
+    #             self.delimit_frame = "\t"
+    #     elif mystring.count(";") > mystring.count('\t'):
+    #         self.delimit_frame = ';'
+    #     else:
+    #         self.delimit_frame = "\t"
 
-        f.close()
-        f = open(self.csv_choice, 'r', encoding='utf-8')
+    #     f.close()
+    #     f = open(self.csv_choice, 'r', encoding='utf-8')
         
-        for row in csv.reader(f, delimiter = self.delimit_frame):
-            self.csvFileArray.append(row)
-        self.csvFileArray = np.array(self.csvFileArray)
-        print(self.csvFileArray[0])
-        pass
+    #     for row in csv.reader(f, delimiter = self.delimit_frame):
+    #         self.csvFileArray.append(row)
+    #     self.csvFileArray = np.array(self.csvFileArray)
+    #     print(self.csvFileArray[0])
+    #     pass
         
-    def update_csv(self):
-        # Take the Frame number and grab the statistics       
-                
-        data_array = self.csvFileArray[self.frame_number-1,0].split(' ') # TODO CAHNGE 10 to self.frame_number-1 (10 gets frame 9)
-        del data_array[-1] # Remove the ending ' '
-        
-        # Split each object and its data up 
-        split_data_array = []
-        for i in range(0, len(data_array), 6):
-            split_data_array.append(data_array[i : i+6])
-        print(split_data_array)
-        split_data_array = np.array(split_data_array)
-        
-        # Set up the statistics table by using a model 
-        model = QtGui.QStandardItemModel(0, 6, self) # Set rows, columns 
-        model.setHorizontalHeaderLabels(["Object", "Confidence %", "XMin", "YMin", "XMax", "YMax" ]) # Set labels
-        
+    # Take the Frame number and grab the statistics       
+    def update_csv(self):        
         # Hold the amount of Objects 
         sharks = 0
         dolphins = 0
         surfers = 0
+
+        # Set up the statistics table by using a model 
+        model = QtGui.QStandardItemModel(0, 6, self) # Set rows, columns 
+        model.setHorizontalHeaderLabels(["Object", "Confidence %", "XMin", "YMin", "XMax", "YMax" ]) # Set labels
         
-        # Populate the table using a for loop 
-        for d in split_data_array:
-            append_data = []
-            for v in d:
-                append_data.append(QtGui.QStandardItem(v))
-                if (v == "shark"):
-                    sharks += 1
-                if (v == "dolphin"):
-                    dolphins += 1
-                if (v == "surfer"):
-                    surfers += 1
-                    
-            model.appendRow(append_data)
-        
+        if self.frame_number+1 in [int(item[0]) for item in self.csvFileArray]:
+            index = [int(item[0]) for item in self.csvFileArray].index(self.frame_number+1)                        
+            for y in range(int(len(self.csvFileArray[0][1])/6)):
+                append_data = []
+                for v in range(6):
+                    v = self.csvFileArray[index][1][y*6+v]
+                    append_data.append(QtGui.QStandardItem(v))
+                    if (v == "shark"):
+                        sharks += 1
+                    if (v == "dolphin"):
+                        dolphins += 1
+                    if (v == "surfer"):
+                        surfers += 1
+                model.appendRow(append_data)            
+
         # Update the object numbers 
         self.number_sharks = sharks 
         self.number_dolhpins = dolphins
@@ -382,7 +380,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.statsTableView.show()
         self.ui.label_Output_Surfers.setText(str(self.number_surfers))
         self.ui.label_Output_Dolphins.setText(str(self.number_dolhpins))
-        self.ui.label_Output_Sharks.setText(str(self.number_sharks))    
+        self.ui.label_Output_Sharks.setText(str(self.number_sharks))                    
 
     def callback_videoOnlyDataButton(self):
         # Enabled/Disable Buttons 
@@ -401,8 +399,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.csvListWidget.setEnabled(True)
         self.ui.loadDataButton.setEnabled(True)
         self.shortcut_load.setEnabled(True)
-        self.ui.DLMcomboBox.setEnabled(False)
+        self.ui.DLMcomboBox.setEnabled(False)    
     
+def toggleEnabled(uiElement):
+    if uiElement.isEnabled():
+        uiElement.setEnabled(False)
+    else:
+        uiElement.setEnabled(True)
+
     # The "main()" function, like a C program
 def main():
     print("Loading applicaiton...")
