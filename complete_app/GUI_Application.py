@@ -164,11 +164,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def callback_load(self):
         # Load in a file to play
         self.ui.label_Ouput_Status.setText("Loading Video") # Update Status
-        row = self.ui.videoListWidget.currentRow() # Get the selected row 
-        file_array = glob.glob(os.path.join(self.inputDir, '*.mp4'))
-        self.file = file_array[row]
-        # self.file = QtCore.QDir.current().filePath(file_array[row]) # Take that row and load the file 
-        self.video_choice = file_array[row] # Set the video choice made by the user 
+        self.file = os.path.join(self.inputDir, self.ui.videoListWidget.selectedItems()[0].text())        
+        self.video_choice = self.file # Set the video choice made by the user 
         self.video_player_input.setMedia(QtMultimedia.QMediaContent(QtCore.QUrl.fromLocalFile(self.file)))
         self.video_player_input.setVideoOutput(self.ui.video_widget_input)
         self.ui.video_widget_input.setAspectRatioMode(QtCore.Qt.KeepAspectRatioByExpanding)
@@ -198,9 +195,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     
     def callback_impCSV(self):
         # Load in a file to play
-        row = self.ui.csvListWidget.currentRow() # Get the selected row 
-        file_array = glob.glob(os.path.join(self.inputDir, '*.csv'))
-        self.csv_choice = file_array[row]
+        self.csv_choice = os.path.join(self.inputDir, self.ui.csvListWidget.selectedItems()[0].text())        
         self.ui.label_Ouput_Status.setText("CSV Loaded") # Update Status
 
         # lock video controls
@@ -328,7 +323,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         
     def callback_playItem(self):
         self.ui.loadDataButton.setEnabled(True)
-        self.shortcut_load.setEnabled(True)
+        self.shortcut_load.setEnabled(True)        
         print(self.ui.videoListWidget.currentRow())
         
     def callback_DLMBox(self):
