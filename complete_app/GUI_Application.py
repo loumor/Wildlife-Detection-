@@ -116,6 +116,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # Slider events 
         self.ui.horizontalSlider.sliderMoved.connect(self.callback_setPosition) # Slider manual moved 
         self.ui.horizontalSlider.setEnabled(False)
+
+        # probe = QtMultimedia.QVideoProbe(self)
+        # probe.videoFrameProbed.connect(self.positionChanged)
+        # probe.setSource(self.video_player_input)
         self.video_player_input.positionChanged.connect(self.positionChanged) # Update slider based on video position
         self.video_player_input.durationChanged.connect(self.durationChanged) # Slider length based on video duration 
 
@@ -161,11 +165,17 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.help_child_win = ApplicationWindow_Help()
         self.help_child_win.show()
         
-    def callback_load(self):
+    def callback_load(self):        
         # Load in a file to play
         self.ui.label_Ouput_Status.setText("Loading Video") # Update Status
         self.file = os.path.join(self.inputDir, self.ui.videoListWidget.selectedItems()[0].text())        
         self.video_choice = self.file # Set the video choice made by the user 
+
+        videoReader = cv2.VideoCapture(self.file)        
+        self.fps = int(videoReader.get(cv2.CAP_PROP_FPS))    
+        videoReader.release()
+        self.video_player_input.setNotifyInterval(round(1000/self.fps))
+
         self.video_player_input.setMedia(QtMultimedia.QMediaContent(QtCore.QUrl.fromLocalFile(self.file)))
         self.video_player_input.setVideoOutput(self.ui.video_widget_input)
         self.ui.video_widget_input.setAspectRatioMode(QtCore.Qt.KeepAspectRatioByExpanding)
@@ -191,7 +201,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         else: 
             # CSV File
             self.ui.DLMcomboBox.setEnabled(False)
-            self.ui.csvListWidget.setEnabled(True)                        
+            self.ui.csvListWidget.setEnabled(True)             
     
     def callback_impCSV(self):
         # Load in a file to play
@@ -290,9 +300,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             shutil.copy(self.output_csv_path, filePath[0])
     
     def positionChanged(self, position):
+    # def positionChanged(self):
         # The video position has changed 
         # Theres 24 frames per second (frame 0 -> 23 = 1 second)
-        self.frame_number = round((self.video_player_input.position()/1000)*24)
+        self.frame_number = round((self.video_player_input.position()/1000)*self.fps)
         print("Frame Number: " + str(self.frame_number)) # DEBUGGING 
         
         # Get the current video time
