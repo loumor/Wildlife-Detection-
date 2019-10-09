@@ -173,6 +173,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         videoReader = cv2.VideoCapture(self.file)        
         self.fps = int(videoReader.get(cv2.CAP_PROP_FPS))    
+        self.noFrames = videoReader.get(cv2.CAP_PROP_FRAME_COUNT)
         videoReader.release()
         self.video_player_input.setNotifyInterval(round(1000/self.fps))
 
@@ -250,7 +251,13 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         
         if self.Videoanalyse_CSVanalyse == 0:
             if self.DLM == 0:
-                out, csvOut = PD.retinanetDetection(self.file)
+                progress = QtWidgets.QProgressDialog("Processing video ...", "Abort", 0, self.noFrames)
+                progress.setWindowModality(QtCore.Qt.WindowModal)
+                progress.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+                progress.setCancelButton(None)                
+                progress.forceShow()
+                progress.setValue(0)
+                out, csvOut = PD.retinanetDetection(self.file, progress)
                 # Reset the CSV File Array 
                 self.csvFileArray = []
                 self.csv_choice = csvOut
@@ -386,7 +393,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         
         if self.frame_number+1 in [int(item[0]) for item in self.csvFileArray]:
             index = [int(item[0]) for item in self.csvFileArray].index(self.frame_number+1)                        
-            for y in range(int(len(self.csvFileArray[0][1])/6)):
+            for y in range(int(len(self.csvFileArray[index][1])/6)):
                 append_data = []
                 for v in range(6):
                     v = self.csvFileArray[index][1][y*6+v]
@@ -492,6 +499,12 @@ def revertFresh(self):
         self.shortcut_impCSV.setEnabled(False)        
         self.shortcut_saveVid.setEnabled(False)
         self.shortcut_expCSV.setEnabled(False)
+
+        self.video_player_input.setMedia(QtMultimedia.QMediaContent())
+        self.video_player_output.setMedia(QtMultimedia.QMediaContent())
+
+        self.ui.statsTableView.setModel(None)
+        self.csv_choice = None
 
 # The "main()" function, like a C program
 def main():

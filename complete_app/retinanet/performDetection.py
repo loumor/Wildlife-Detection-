@@ -16,7 +16,7 @@ def get_session():
     return tf.Session(config=config)
 
 # perform detection and return video with bounding boxes plus results csv
-def retinanetDetection(videoPath):
+def retinanetDetection(videoPath, progress):
     # Set tensorflow backend
     keras.backend.tensorflow_backend.set_session(get_session())
 
@@ -46,9 +46,9 @@ def retinanetDetection(videoPath):
 
     # display progress    
     print('Number of frames to process: {}'.format(noFrames))
-    progress = QtWidgets.QProgressDialog("Processing video ...", "Abort", 0, noFrames)
-    progress.setWindowModality(QtCore.Qt.WindowModal)
-    progress.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+    # progress = QtWidgets.QProgressDialog("Processing video ...", "Abort", 0, noFrames)
+    # progress.setWindowModality(QtCore.Qt.WindowModal)
+    # progress.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
     # loop through frames
     for i in range(noFrames):
@@ -149,9 +149,9 @@ def overlayCSV(csvFile, videoFile):
     #print('Performing detection on: {}'.format())
     print('Number of frames to process: {}'.format(noFrames))
 
-    progress = QtWidgets.QProgressDialog("Processing video ...", "Abort", 0, noFrames)
-    progress.setWindowModality(QtCore.Qt.WindowModal)
-    progress.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
+    # progress = QtWidgets.QProgressDialog("Processing video ...", "Abort", 0, noFrames)
+    # progress.setWindowModality(QtCore.Qt.WindowModal)
+    # progress.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
     # loop through frames
     for i in range(1,noFrames+1,1):
