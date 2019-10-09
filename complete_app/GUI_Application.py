@@ -26,49 +26,49 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         
         # Connect events (like button presses) to functions
         self.ui.button_play.clicked.connect(self.callback_play) # Play button         
-        toggleEnabled(self.ui.button_play)
+        self.ui.button_play.setEnabled(False)
         self.ui.button_pause.clicked.connect(self.callback_pause) # Pause button 
-        toggleEnabled(self.ui.button_pause)
+        self.ui.button_pause.setEnabled(False)
         self.ui.button_stop.clicked.connect(self.callback_stop) # Stop button
-        toggleEnabled(self.ui.button_stop)
+        self.ui.button_stop.setEnabled(False)
         # self.ui.Help_toolButton.clicked.connect(self.callback_help) # Help button 
         self.ui.loadDataButton.clicked.connect(self.callback_load) # Load Data button
         self.ui.importCSVButton.clicked.connect(self.callback_impCSV) # Import CSV button
         self.ui.processDataButton.clicked.connect(self.callback_procData) # Process Data button
         self.ui.saveButton.clicked.connect(self.callback_save) # Save video button 
         self.ui.exportCSVButton.clicked.connect(self.callback_expCSV) # Export CSV button 
-        self.ui.videoListWidget.itemClicked.connect(self.callback_playItem) # Video selected         
-        toggleEnabled(self.ui.videoListWidget) # Disable Video Chocie
+        self.ui.videoListWidget.itemClicked.connect(self.callback_playItem) # Video selected                 
+        self.ui.videoListWidget.setEnabled(False) # Disable Video Chocie
         self.ui.DLMcomboBox.currentIndexChanged.connect(self.callback_DLMBox) # DLM selection 
         self.ui.csvListWidget.itemClicked.connect(self.callback_loadCSV) # Selected CSV file to load
-        toggleEnabled(self.ui.csvListWidget) # Disable CSV Choice 
+        self.ui.csvListWidget.setEnabled(False) # Disable CSV Choice 
         self.ui.videoOnlyDataButton.clicked.connect(self.callback_videoOnlyDataButton) # Video analysing 
         self.ui.CSVOnlyDataButton.clicked.connect(self.callback_CSVOnlyDataButton) # CSV analysing 
 
         # Shortcuts 
         self.shortcut_play = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+p"), self) # Play Video
         self.shortcut_play.activated.connect(self.callback_play)
-        toggleEnabled(self.shortcut_play)
+        self.shortcut_play.setEnabled(False)
         self.shortcut_pause = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+o"), self) # Pause Video
         self.shortcut_pause.activated.connect(self.callback_pause)
-        toggleEnabled(self.shortcut_pause)
+        self.shortcut_pause.setEnabled(False)
         self.shortcut_stop = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+k"), self) # Stop Video
         self.shortcut_stop.activated.connect(self.callback_stop)
-        toggleEnabled(self.shortcut_stop)
+        self.shortcut_stop.setEnabled(False)
         self.shortcut_Help = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+h"), self) # Help View
         self.shortcut_Help.activated.connect(self.callback_help)
         self.shortcut_load = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+l"), self) # Load Video
         self.shortcut_load.activated.connect(self.callback_load)
-        toggleEnabled(self.shortcut_load)
+        self.shortcut_load.setEnabled(False)
         self.shortcut_impCSV = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+i"), self) # Import CSV 
         self.shortcut_impCSV.activated.connect(self.callback_impCSV)
-        toggleEnabled(self.shortcut_impCSV)
+        self.shortcut_impCSV.setEnabled(False)
         self.shortcut_saveVid = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+s"), self) # Save Video
         self.shortcut_saveVid.activated.connect(self.callback_save)
-        toggleEnabled(self.shortcut_saveVid)
+        self.shortcut_saveVid.setEnabled(False)
         self.shortcut_expCSV = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+e"), self) # Export CSV
         self.shortcut_expCSV.activated.connect(self.callback_expCSV)
-        toggleEnabled(self.shortcut_expCSV)
+        self.shortcut_expCSV.setEnabled(False)
         self.shortcut_EXIT = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+t"), self) # Exit
         self.shortcut_EXIT.activated.connect(self.close)
 
@@ -76,13 +76,17 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         dirAction = QtWidgets.QAction("Select input directory", self)                
         dirAction.triggered.connect(self.callback_selectDir)
 
-        helpAction = QtWidgets.QAction("Open help", self)                
+        refreshAction = QtWidgets.QAction("Refresh files", self)                
+        refreshAction.triggered.connect(self.callback_refreshDir)
+
+        helpAction = QtWidgets.QAction("Help", self)                
         helpAction.triggered.connect(self.callback_help)
 
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('File')
         helpMenu = mainMenu.addMenu('Help')
         fileMenu.addAction(dirAction)
+        fileMenu.addAction(refreshAction)
         helpMenu.addAction(helpAction)
         
         # Configure the video widgets
@@ -111,6 +115,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         
         # Slider events 
         self.ui.horizontalSlider.sliderMoved.connect(self.callback_setPosition) # Slider manual moved 
+        self.ui.horizontalSlider.setEnabled(False)
         self.video_player_input.positionChanged.connect(self.positionChanged) # Update slider based on video position
         self.video_player_input.durationChanged.connect(self.durationChanged) # Slider length based on video duration 
 
@@ -173,25 +178,23 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         #self.ui.statsTableView.clearSpans()
 
         # enable play buttons and shortcuts
-        toggleEnabled(self.ui.button_play)
-        toggleEnabled(self.ui.button_pause)
-        toggleEnabled(self.ui.button_stop)
-        toggleEnabled(self.shortcut_play)
-        toggleEnabled(self.shortcut_pause)
-        toggleEnabled(self.shortcut_stop)
+        self.ui.button_play.setEnabled(True)
+        self.ui.button_pause.setEnabled(True)
+        self.ui.button_stop.setEnabled(True)
+        self.shortcut_play.setEnabled(True)
+        self.shortcut_pause.setEnabled(True)
+        self.shortcut_stop.setEnabled(True)
+        self.ui.horizontalSlider.setEnabled(True)        
         
         # Enabled/Disable Buttons 
         # No CSV
         if self.Videoanalyse_CSVanalyse == 0:
-            toggleEnabled(self.ui.processDataButton)            
-            toggleEnabled(self.ui.DLMcomboBox)
+            self.ui.processDataButton.setEnabled(True)
+            self.ui.DLMcomboBox.setEnabled(True)
         else: 
             # CSV File
             self.ui.DLMcomboBox.setEnabled(False)
-            self.ui.csvListWidget.setEnabled(True)
-            self.ui.importCSVButton.setEnabled(True)
-            self.shortcut_impCSV.setEnabled(True)
-            
+            self.ui.csvListWidget.setEnabled(True)                        
     
     def callback_impCSV(self):
         # Load in a file to play
@@ -201,9 +204,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.label_Ouput_Status.setText("CSV Loaded") # Update Status
 
         # lock video controls
-        self.ui.button_play.setEnabled(False)
-        self.ui.button_pause.setEnabled(False)
-        self.ui.button_stop.setEnabled(False)
+        # self.ui.button_play.setEnabled(False)
+        # self.ui.button_pause.setEnabled(False)
+        # self.ui.button_stop.setEnabled(False)
         
         # Open the CSV 
         # f = open(self.csv_choice, 'r')
@@ -282,12 +285,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def callback_save(self):
         # Save Video  
         filePath = QtWidgets.QFileDialog.getSaveFileName(self, 'Save Video', os.path.dirname(os.path.realpath(__file__)), 'MP4(*.mp4)')
-        shutil.copy(self.output_video_path, filePath[0])                
+        if filePath[0] is not '':
+            shutil.copy(self.output_video_path, filePath[0])                
     
     def callback_expCSV(self):
         # Export CSV  
         filePath = QtWidgets.QFileDialog.getSaveFileName(self, 'Save CSV', os.path.dirname(os.path.realpath(__file__)), 'CSV(*.csv)')
-        shutil.copy(self.output_csv_path, filePath[0])
+        if filePath[0] is not '':
+            shutil.copy(self.output_csv_path, filePath[0])
     
     def positionChanged(self, position):
         # The video position has changed 
@@ -322,6 +327,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.video_player_output.setPosition(position)
         
     def callback_playItem(self):
+        self.ui.loadDataButton.setEnabled(True)
+        self.shortcut_load.setEnabled(True)
         print(self.ui.videoListWidget.currentRow())
         
     def callback_DLMBox(self):
@@ -329,6 +336,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.DLM = self.ui.DLMcomboBox.currentIndex()
         
     def callback_loadCSV(self):
+        self.ui.importCSVButton.setEnabled(True)
+        self.shortcut_impCSV.setEnabled(True)
         print(self.ui.csvListWidget.currentRow())
         
     # def recieve_csv(self): 
@@ -393,34 +402,34 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.statsTableView.setModel(model) 
         self.ui.statsTableView.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection) # Turn off row/columns selection
         self.ui.statsTableView.show()
+        self.ui.statsTableView.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
         self.ui.label_Output_Surfers.setText(str(self.number_surfers))
         self.ui.label_Output_Dolphins.setText(str(self.number_dolhpins))
-        self.ui.label_Output_Sharks.setText(str(self.number_sharks))                    
+        self.ui.label_Output_Sharks.setText(str(self.number_sharks))                          
 
     def callback_videoOnlyDataButton(self):
+        # revert to fresh
+        revertFresh(self)
+
         # Enabled/Disable Buttons 
         self.Videoanalyse_CSVanalyse = 0
-        self.ui.videoListWidget.setEnabled(True)
-        self.ui.csvListWidget.setEnabled(False)
-        self.ui.loadDataButton.setEnabled(True)
-        self.shortcut_load.setEnabled(True)
-        self.ui.importCSVButton.setEnabled(False)
-        self.shortcut_impCSV.setEnabled(False)
+        self.ui.videoListWidget.setEnabled(True)                
     
     def callback_CSVOnlyDataButton(self):
+        # revert to fresh
+        revertFresh(self)
+        
         # Enabled/Disable Buttons 
         self.Videoanalyse_CSVanalyse = 1
-        self.ui.videoListWidget.setEnabled(True)
-        self.ui.csvListWidget.setEnabled(True)
-        self.ui.loadDataButton.setEnabled(True)
-        self.shortcut_load.setEnabled(True)
-        self.ui.DLMcomboBox.setEnabled(False)    
+        self.ui.videoListWidget.setEnabled(True)                     
 
     def callback_selectDir(self):
         inputDir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory Containing Video/CSV"))
         if inputDir is '':
             return
         self.inputDir = inputDir
+
+        revertFresh(self)
 
         # Search for all videos and CSV's in the current directory         
         video_array = glob.glob(os.path.join(self.inputDir, '*.mp4'))
@@ -434,15 +443,51 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.csvListWidget.clear()
         # List View, display the CSV's to be selected 
         for j in csv_array:
-            self.ui.csvListWidget.addItem(os.path.basename(j))
-    
-def toggleEnabled(uiElement):
-    if uiElement.isEnabled():
-        uiElement.setEnabled(False)
-    else:
-        uiElement.setEnabled(True)
+            self.ui.csvListWidget.addItem(os.path.basename(j))    
 
-    # The "main()" function, like a C program
+    def callback_refreshDir(self):
+        # Search for all videos and CSV's in the current directory         
+        video_array = glob.glob(os.path.join(self.inputDir, '*.mp4'))
+        csv_array = glob.glob(os.path.join(self.inputDir, '*.csv'))
+
+        # List View, display the videos to be selected 
+        self.ui.videoListWidget.clear()
+        for i in video_array:
+            self.ui.videoListWidget.addItem(os.path.basename(i))
+        
+        self.ui.csvListWidget.clear()
+        # List View, display the CSV's to be selected 
+        for j in csv_array:
+            self.ui.csvListWidget.addItem(os.path.basename(j))  
+    
+def revertFresh(self):
+        self.ui.videoListWidget.setEnabled(False)
+        self.ui.videoListWidget.clearSelection()
+        self.ui.csvListWidget.setEnabled(False)
+        self.ui.csvListWidget.clearSelection()
+
+        self.ui.button_play.setEnabled(False)
+        self.ui.button_pause.setEnabled(False)
+        self.ui.button_stop.setEnabled(False)
+        self.ui.processDataButton.setEnabled(False)
+        self.ui.saveButton.setEnabled(False)
+        self.ui.exportCSVButton.setEnabled(False)
+        self.ui.loadDataButton.setEnabled(False)
+        self.ui.importCSVButton.setEnabled(False)
+
+        self.ui.DLMcomboBox.setEnabled(False)
+
+        self.ui.horizontalSlider.setEnabled(False)
+
+        self.shortcut_play.setEnabled(False)
+        self.shortcut_pause.setEnabled(False)
+        self.shortcut_stop.setEnabled(False)        
+        self.shortcut_load.setEnabled(False)
+        self.shortcut_impCSV.setEnabled(False)        
+        self.shortcut_saveVid.setEnabled(False)
+        self.shortcut_expCSV.setEnabled(False)
+
+# The "main()" function, like a C program
 def main():
     print("Loading applicaiton...")
     app = QtWidgets.QApplication(sys.argv)

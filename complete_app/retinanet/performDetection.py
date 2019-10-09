@@ -22,7 +22,7 @@ def retinanetDetection(videoPath):
 
     # Load retinanet model
     print('Loading Retinanet model')
-    modelPath = os.path.join('retinanet', 'snapshots', 'inference2.h5')
+    modelPath = os.path.join('retinanet', 'snapshots', 'inference3.h5')
     model = models.load_model(modelPath, backbone_name='resnet50')
 
     # Label names
@@ -74,7 +74,7 @@ def retinanetDetection(videoPath):
         # loop through each detection
         for box, score, label in zip(boxes[0], scores[0], labels[0]):
             # Confidence threshold
-            if score < 0.5:
+            if score < 0.3:
                 break                                                     
 
             # filter out bad detections
@@ -160,8 +160,7 @@ def overlayCSV(csvFile, videoFile):
         ret, frame = videoReader.read()
         
         # frame to draw bounding boxes on
-        draw = frame.copy()
-        draw = cv2.cvtColor(draw, cv2.COLOR_BGR2RGB)                
+        draw = frame.copy()        
 
         # check if there are any detections for frame
         if i in [int(item[0]) for item in detections]:
