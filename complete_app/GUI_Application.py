@@ -31,7 +31,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         toggleEnabled(self.ui.button_pause)
         self.ui.button_stop.clicked.connect(self.callback_stop) # Stop button
         toggleEnabled(self.ui.button_stop)
-        self.ui.Help_toolButton.clicked.connect(self.callback_help) # Help button 
+        # self.ui.Help_toolButton.clicked.connect(self.callback_help) # Help button 
         self.ui.loadDataButton.clicked.connect(self.callback_load) # Load Data button
         self.ui.importCSVButton.clicked.connect(self.callback_impCSV) # Import CSV button
         self.ui.processDataButton.clicked.connect(self.callback_procData) # Process Data button
@@ -71,6 +71,19 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         toggleEnabled(self.shortcut_expCSV)
         self.shortcut_EXIT = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+t"), self) # Exit
         self.shortcut_EXIT.activated.connect(self.close)
+
+        # setup menu bar
+        dirAction = QtWidgets.QAction("Select input directory", self)                
+        dirAction.triggered.connect(self.callback_selectDir)
+
+        helpAction = QtWidgets.QAction("Open help", self)                
+        helpAction.triggered.connect(self.callback_help)
+
+        mainMenu = self.menuBar()
+        fileMenu = mainMenu.addMenu('File')
+        helpMenu = mainMenu.addMenu('Help')
+        fileMenu.addAction(dirAction)
+        helpMenu.addAction(helpAction)
         
         # Configure the video widgets
         self.video_player_input = QtMultimedia.QMediaPlayer(None, QtMultimedia.QMediaPlayer.VideoSurface)
@@ -102,6 +115,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.video_player_input.durationChanged.connect(self.durationChanged) # Slider length based on video duration 
 
         # Search for all videos and CSV's in the current directory 
+        self.inputDir = os.path.dirname(os.path.abspath(__file__))
         video_array = glob.glob('*.mp4')
         csv_array = glob.glob('*csv')
 
@@ -146,8 +160,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # Load in a file to play
         self.ui.label_Ouput_Status.setText("Loading Video") # Update Status
         row = self.ui.videoListWidget.currentRow() # Get the selected row 
-        file_array = glob.glob('*.mp4')
-        self.file = QtCore.QDir.current().filePath(file_array[row]) # Take that row and load the file 
+        file_array = glob.glob(os.path.join(self.inputDir, '*.mp4'))
+        self.file = file_array[row]
+        # self.file = QtCore.QDir.current().filePath(file_array[row]) # Take that row and load the file 
         self.video_choice = file_array[row] # Set the video choice made by the user 
         self.video_player_input.setMedia(QtMultimedia.QMediaContent(QtCore.QUrl.fromLocalFile(self.file)))
         self.video_player_input.setVideoOutput(self.ui.video_widget_input)
@@ -171,17 +186,17 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             toggleEnabled(self.ui.processDataButton)            
             toggleEnabled(self.ui.DLMcomboBox)
         else: 
-            # CSV File            
-            toggleEnabled(self.ui.DLMcomboBox)
-            toggleEnabled(self.ui.csvListWidget)
-            toggleEnabled(self.ui.importCSVButton)
-            toggleEnabled(self.shortcut_impCSV)
+            # CSV File
+            self.ui.DLMcomboBox.setEnabled(False)
+            self.ui.csvListWidget.setEnabled(True)
+            self.ui.importCSVButton.setEnabled(True)
+            self.shortcut_impCSV.setEnabled(True)
             
     
     def callback_impCSV(self):
         # Load in a file to play
         row = self.ui.csvListWidget.currentRow() # Get the selected row 
-        file_array = glob.glob('*.csv')
+        file_array = glob.glob(os.path.join(self.inputDir, '*.csv'))
         self.csv_choice = file_array[row]
         self.ui.label_Ouput_Status.setText("CSV Loaded") # Update Status
 
@@ -400,6 +415,26 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.ui.loadDataButton.setEnabled(True)
         self.shortcut_load.setEnabled(True)
         self.ui.DLMcomboBox.setEnabled(False)    
+
+    def callback_selectDir(self):
+        inputDir = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory Containing Video/CSV"))
+        if inputDir is '':
+            return
+        self.inputDir = inputDir
+
+        # Search for all videos and CSV's in the current directory         
+        video_array = glob.glob(os.path.join(self.inputDir, '*.mp4'))
+        csv_array = glob.glob(os.path.join(self.inputDir, '*.csv'))
+
+        # List View, display the videos to be selected 
+        self.ui.videoListWidget.clear()
+        for i in video_array:
+            self.ui.videoListWidget.addItem(os.path.basename(i))
+        
+        self.ui.csvListWidget.clear()
+        # List View, display the CSV's to be selected 
+        for j in csv_array:
+            self.ui.csvListWidget.addItem(os.path.basename(j))
     
 def toggleEnabled(uiElement):
     if uiElement.isEnabled():
