@@ -142,10 +142,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def callback_play(self):
         # Start video playback
-        if self.video_player_input.state() == QtMultimedia.QMediaPlayer.PausedState or self.video_player_input.state() == QtMultimedia.QMediaPlayer.StoppedState:
-            self.video_player_output.play()
-            self.video_player_input.play()
-            self.ui.label_Ouput_Status.setText("Video Playing") # Update Status
+        if self.video_player_input.state() == QtMultimedia.QMediaPlayer.PausedState:
+            self.video_player_output.setPosition(self.video_player_input.position())        
+            
+        self.video_player_input.play()
+        self.video_player_output.play()        
+        self.ui.label_Ouput_Status.setText("Video Playing") # Update Status
 
     def callback_pause(self):
         # Pause video playback
@@ -153,6 +155,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             self.ui.label_Ouput_Status.setText("Video Paused") # Update Status 
             self.video_player_input.pause()
             self.video_player_output.pause()
+            self.video_player_output.setPosition(self.video_player_input.position())
 
     def callback_stop(self):
         # Pause video playback
@@ -165,44 +168,45 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.help_child_win = ApplicationWindow_Help()
         self.help_child_win.show()
         
-    def callback_load(self):        
-        # Load in a file to play
-        self.ui.label_Ouput_Status.setText("Loading Video") # Update Status
-        self.file = os.path.join(self.inputDir, self.ui.videoListWidget.selectedItems()[0].text())        
-        self.video_choice = self.file # Set the video choice made by the user 
+    def callback_load(self):    
+        if self.ui.videoListWidget.selectedItems() != []:
+            # Load in a file to play
+            self.ui.label_Ouput_Status.setText("Loading Video") # Update Status
+            self.file = os.path.join(self.inputDir, self.ui.videoListWidget.selectedItems()[0].text())        
+            self.video_choice = self.file # Set the video choice made by the user 
 
-        videoReader = cv2.VideoCapture(self.file)        
-        self.fps = int(videoReader.get(cv2.CAP_PROP_FPS))    
-        self.noFrames = videoReader.get(cv2.CAP_PROP_FRAME_COUNT)
-        videoReader.release()
-        self.video_player_input.setNotifyInterval(round(1000/self.fps))
+            videoReader = cv2.VideoCapture(self.file)        
+            self.fps = int(videoReader.get(cv2.CAP_PROP_FPS))    
+            self.noFrames = videoReader.get(cv2.CAP_PROP_FRAME_COUNT)
+            videoReader.release()
+            self.video_player_input.setNotifyInterval(round((1000/self.fps)))
 
-        self.video_player_input.setMedia(QtMultimedia.QMediaContent(QtCore.QUrl.fromLocalFile(self.file)))
-        self.video_player_input.setVideoOutput(self.ui.video_widget_input)
-        self.ui.video_widget_input.setAspectRatioMode(QtCore.Qt.KeepAspectRatioByExpanding)
-        self.ui.label_Ouput_Status.setText("Video Loaded") # Update Status
-       
-        # Clear the CSV Statistics if it has previously been filled
-        #self.ui.statsTableView.clearSpans()
-
-        # enable play buttons and shortcuts
-        self.ui.button_play.setEnabled(True)
-        self.ui.button_pause.setEnabled(True)
-        self.ui.button_stop.setEnabled(True)
-        self.shortcut_play.setEnabled(True)
-        self.shortcut_pause.setEnabled(True)
-        self.shortcut_stop.setEnabled(True)
-        self.ui.horizontalSlider.setEnabled(True)        
+            self.video_player_input.setMedia(QtMultimedia.QMediaContent(QtCore.QUrl.fromLocalFile(self.file)))
+            self.video_player_input.setVideoOutput(self.ui.video_widget_input)
+            self.ui.video_widget_input.setAspectRatioMode(QtCore.Qt.KeepAspectRatioByExpanding)
+            self.ui.label_Ouput_Status.setText("Video Loaded") # Update Status
         
-        # Enabled/Disable Buttons 
-        # No CSV
-        if self.Videoanalyse_CSVanalyse == 0:
-            self.ui.processDataButton.setEnabled(True)
-            self.ui.DLMcomboBox.setEnabled(True)
-        else: 
-            # CSV File
-            self.ui.DLMcomboBox.setEnabled(False)
-            self.ui.csvListWidget.setEnabled(True)             
+            # Clear the CSV Statistics if it has previously been filled
+            #self.ui.statsTableView.clearSpans()
+
+            # enable play buttons and shortcuts
+            self.ui.button_play.setEnabled(True)
+            self.ui.button_pause.setEnabled(True)
+            self.ui.button_stop.setEnabled(True)
+            self.shortcut_play.setEnabled(True)
+            self.shortcut_pause.setEnabled(True)
+            self.shortcut_stop.setEnabled(True)
+            self.ui.horizontalSlider.setEnabled(True)        
+            
+            # Enabled/Disable Buttons 
+            # No CSV
+            if self.Videoanalyse_CSVanalyse == 0:
+                self.ui.processDataButton.setEnabled(True)
+                self.ui.DLMcomboBox.setEnabled(True)
+            else: 
+                # CSV File
+                self.ui.DLMcomboBox.setEnabled(False)
+                self.ui.csvListWidget.setEnabled(True)             
     
     def callback_impCSV(self):
         # Load in a file to play
@@ -248,15 +252,15 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             # CSV
             print("Video Choice:" + str(self.video_choice))
             print("CSV Choice:" + str(self.csv_choice))
+
+        progress = QtWidgets.QProgressDialog("Processing video ...", "", 0, self.noFrames, self)            
+        progress.setWindowModality(QtCore.Qt.WindowModal)            
+        progress.forceShow()
+        progress.setCancelButton(None)                            
+        progress.setValue(0)
         
         if self.Videoanalyse_CSVanalyse == 0:
-            if self.DLM == 0:
-                progress = QtWidgets.QProgressDialog("Processing video ...", "Abort", 0, self.noFrames)
-                progress.setWindowModality(QtCore.Qt.WindowModal)
-                progress.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-                progress.setCancelButton(None)                
-                progress.forceShow()
-                progress.setValue(0)
+            if self.DLM == 0:                
                 out, csvOut = PD.retinanetDetection(self.file, progress)
                 # Reset the CSV File Array 
                 self.csvFileArray = []
@@ -265,8 +269,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             else:
                 # yolo detection
                 return            
-        else:
-            out = PD.overlayCSV(self.csv_choice, self.file)
+        else:                        
+            out = PD.overlayCSV(self.csv_choice, self.file, progress)
             self.csvFileArray = []
             self.output_csv_path = self.csv_choice
         
@@ -284,7 +288,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         # Populate the CSV Statistics 
         f = open(self.csv_choice, 'r', encoding='utf-8')
-        for row in csv.reader(f, delimiter = self.delimit_frame):
+        reader = csv.reader(f, delimiter = self.delimit_frame)
+        next(reader, None)
+        for row in reader:
             rowCSV = [int(row[0].split(',')[0]), row[0].split(',')[1].split()]
             self.csvFileArray.append(rowCSV)        
         f.close()
@@ -293,6 +299,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # Enable/Disable Buttons 
         self.ui.processDataButton.setEnabled(False)
         self.ui.DLMcomboBox.setEnabled(False)
+
+        # Enable shortcuts
+        self.shortcut_expCSV.setEnabled(True)
+        self.shortcut_saveVid.setEnabled(True)
     
     def callback_save(self):
         # Save Video  
@@ -319,15 +329,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         
         # Update the video position label 
         self.ui.label_video_time.setText(current_pos +"/"+ duration)
-        
-        
+                
         # NEED TO UPDATE THE csv_choice once the DLM returns the CSV file ###########################################################################
         # Each Change in the video position update the CSV acordingly 
         if (self.csv_choice != None): # Don't update CSV if only the original video is playing 
             self.update_csv()
         
         # Update the slider position based on video position 
-        self.ui.horizontalSlider.setValue(position)
+        self.ui.horizontalSlider.setValue(position)        
 
     def durationChanged(self):
         # Update the slider proportions  
@@ -391,8 +400,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         model = QtGui.QStandardItemModel(0, 6, self) # Set rows, columns 
         model.setHorizontalHeaderLabels(["Object", "Confidence %", "XMin", "YMin", "XMax", "YMax" ]) # Set labels
         
-        if self.frame_number+1 in [int(item[0]) for item in self.csvFileArray]:
-            index = [int(item[0]) for item in self.csvFileArray].index(self.frame_number+1)                        
+        if self.frame_number in [int(item[0]) for item in self.csvFileArray]:
+            index = [int(item[0]) for item in self.csvFileArray].index(self.frame_number)                        
             for y in range(int(len(self.csvFileArray[index][1])/6)):
                 append_data = []
                 for v in range(6):
@@ -505,6 +514,11 @@ def revertFresh(self):
 
         self.ui.statsTableView.setModel(None)
         self.csv_choice = None
+        self.csvFileArray = None
+
+        self.number_sharks = 0
+        self.number_dolhpins = 0
+        self.number_surfers = 0
 
 # The "main()" function, like a C program
 def main():

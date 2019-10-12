@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>EGH455 Project</string>
+   <string>EGH455 Wildlife Detection</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">

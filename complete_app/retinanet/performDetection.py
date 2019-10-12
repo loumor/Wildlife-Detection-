@@ -22,7 +22,7 @@ def retinanetDetection(videoPath, progress):
 
     # Load retinanet model
     print('Loading Retinanet model')
-    modelPath = os.path.join('retinanet', 'snapshots', 'inference3.h5')
+    modelPath = os.path.join('retinanet', 'snapshots', 'inference4.h5')
     model = models.load_model(modelPath, backbone_name='resnet50')
 
     # Label names
@@ -38,6 +38,7 @@ def retinanetDetection(videoPath, progress):
 
     # List for csv output
     csvOut = []
+    csvOut.append(['FrameNumber', 'PredictionString'])
 
     # Video writer for output video    
     if not os.path.exists(os.path.join('retinanet','results')):
@@ -74,14 +75,14 @@ def retinanetDetection(videoPath, progress):
         # loop through each detection
         for box, score, label in zip(boxes[0], scores[0], labels[0]):
             # Confidence threshold
-            if score < 0.3:
+            if score < 0.7:
                 break                                                     
 
             # filter out bad detections
             if label in [0, 1, 2]:            
                 # Only add frame line if detections exist
                 if not frameDetections:                    
-                    frameDetections.append(i+1)
+                    frameDetections.append(i)
 
                 # draw bounding box and caption
                 colour = label_color(label)          
@@ -92,7 +93,7 @@ def retinanetDetection(videoPath, progress):
                 
                 # format detection result for csv
                 detection = '{} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} '.format(labelNames[label], score, box[0]/width, box[1]/height, box[2]/width, box[3]/height)                
-                detections = detections + detection                
+                detections = detections + detection                        
 
         # draw bounding box and caption
         out.write(draw)
@@ -105,7 +106,7 @@ def retinanetDetection(videoPath, progress):
             csvOut.append(frameDetections)
 
         # set progress for progress bar
-        progress.setValue(i)
+        progress.setValue(i+1)
 
     videoReader.release()    
     out.release()
@@ -122,7 +123,7 @@ def retinanetDetection(videoPath, progress):
     return [outPath, csvPath]
 
 # Overlay bounding boxes and captions for imported csv and video
-def overlayCSV(csvFile, videoFile):
+def overlayCSV(csvFile, videoFile, progress):
     detections = []
 
     with open(csvFile) as csv_file:
@@ -154,7 +155,7 @@ def overlayCSV(csvFile, videoFile):
     # progress.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
     # loop through frames
-    for i in range(1,noFrames+1,1):
+    for i in range(0,noFrames,1):
         print('Frame {}/{}'.format(i,noFrames))
 
         ret, frame = videoReader.read()
@@ -177,6 +178,9 @@ def overlayCSV(csvFile, videoFile):
                 draw_caption(draw, b, caption)
 
         out.write(draw)
+
+        # set progress for progress bar
+        progress.setValue(i+1)
         
     videoReader.release()    
     out.release()

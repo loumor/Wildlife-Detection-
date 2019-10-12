@@ -307,7 +307,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "EGH455 Project"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "EGH455 Wildlife Detection"))
         self.label_Surfers.setText(_translate("MainWindow", "Total Surfers:"))
         self.label_Dolphins.setText(_translate("MainWindow", "Total Dolphins:"))
         self.exportCSVButton.setText(_translate("MainWindow", "Export CSV"))
