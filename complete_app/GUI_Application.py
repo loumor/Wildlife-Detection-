@@ -11,6 +11,8 @@ import datetime
 from GUI_HelpWindow_Application import ApplicationWindow_Help
 sys.path.insert(0, './retinanet')
 import performDetection as PD
+sys.path.insert(0, './yolonet')
+import yolo_performDetection as YPD
 
 # The class that handles the application itself
 class ApplicationWindow(QtWidgets.QMainWindow):
@@ -262,15 +264,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         if self.Videoanalyse_CSVanalyse == 0:
             if self.DLM == 0:                
                 out, csvOut = PD.retinanetDetection(self.file, progress)
-                # Reset the CSV File Array 
-                self.csvFileArray = []
-                self.csv_choice = csvOut
-                self.output_csv_path = csvOut
             else:
                 # yolo detection
-                return            
-        else:                        
-            out = PD.overlayCSV(self.csv_choice, self.file, progress)
+                out, csvOut = YPD.retinanetDetection(self.file, progress)
+            # Reset the CSV File Array
+            self.csvFileArray = []
+            self.csv_choice = csvOut
+            self.output_csv_path = csvOut
+        else:
+            if self.DLM == 0:
+                out = PD.overlayCSV(self.csv_choice, self.file, progress)
+            else:
+                out = YPD.overylayCSV(self.csv_choice, self.file, progress)
             self.csvFileArray = []
             self.output_csv_path = self.csv_choice
         

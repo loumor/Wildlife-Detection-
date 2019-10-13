@@ -4,7 +4,7 @@
         "input_size":           416,
         "anchors":              [0.09,0.41, 0.10,0.57, 0.15,0.50, 0.24,0.41, 0.28,0.23],
         "max_box_per_image":    20,
-        "labels":               ["dolphin", "surfer"]
+        "labels":               ["dolphin", "surfer", "shark"]
     },
 
     "train": {
