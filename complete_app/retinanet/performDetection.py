@@ -91,7 +91,7 @@ def retinanetDetection(videoPath, progress):
                 caption = "{} {:.3f}".format(labelNames[label], score)
                 draw_caption(draw, b, caption)
                 
-                # format detection result for csv
+                # format detection result for csv                
                 detection = '{} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} '.format(labelNames[label], score, box[0]/width, box[1]/height, box[2]/width, box[3]/height)                
                 detections = detections + detection                        
 
@@ -112,13 +112,13 @@ def retinanetDetection(videoPath, progress):
     out.release()
 
     # write csv file
-    with open(os.path.join('retinanet','results',videoName+'-results.csv'), 'w', newline='') as csvFile:
+    with open(os.path.join('retinanet','results',videoName+'-retinanet.csv'), 'w', newline='') as csvFile:
         writer = csv.writer(csvFile)
         writer.writerows(csvOut)
     csvFile.close()  
 
     cv2.destroyAllWindows()
-    csvPath = os.path.join('retinanet','results',videoName+'-results.csv')
+    csvPath = os.path.join('retinanet','results',videoName+'-retinanet.csv')
     outPath = os.path.join('retinanet','results',videoName+'-retinanet.mp4')
     return [outPath, csvPath]
 
@@ -127,7 +127,8 @@ def overlayCSV(csvFile, videoFile, progress):
     detections = []
 
     with open(csvFile) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')        
+        csv_reader = csv.reader(csv_file, delimiter=',')  
+        next(csv_reader)      
         for row in csv_reader:
             detections.append(row)
 

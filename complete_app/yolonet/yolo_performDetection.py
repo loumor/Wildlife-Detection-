@@ -20,9 +20,9 @@ def get_session():
 
 def yolonetDetection(videoPath, progress):
     # Set tensorflow backend
-    keras.backend.tensorflow_backend.set_session(get_session())
+    keras.backend.tensorflow_backend.set_session(get_session())    
 
-    config_path = 'config.json'
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
     with open(config_path) as config_buffer:
         config = json.load(config_buffer)
 
@@ -33,7 +33,7 @@ def yolonetDetection(videoPath, progress):
                 anchors=config['model']['anchors'])
 
     print('Loading Yolonet model')
-    weights_path = os.path.join('snapshots', 'full_yolo_dolphin.h5')
+    weights_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'snapshots', 'full_yolo_dolphin.h5')
     yolo.load_weights(weights_path)
 
     videoName = os.path.splitext(os.path.basename(videoPath))[0]
@@ -63,7 +63,7 @@ def yolonetDetection(videoPath, progress):
 
         boxes = yolo.predict(draw)
         [draw, frameDetections] = draw_boxes(i, draw, boxes, config['model']['labels'])
-        if frameDetections:
+        if frameDetections[1]:
             csvOut.append(frameDetections)
 
         video_writer.write(np.uint8(draw))

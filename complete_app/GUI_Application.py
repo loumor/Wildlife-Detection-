@@ -266,7 +266,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
                 out, csvOut = PD.retinanetDetection(self.file, progress)
             else:
                 # yolo detection
-                out, csvOut = YPD.retinanetDetection(self.file, progress)
+                out, csvOut = YPD.yolonetDetection(self.file, progress)
             # Reset the CSV File Array
             self.csvFileArray = []
             self.csv_choice = csvOut
@@ -275,7 +275,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             if self.DLM == 0:
                 out = PD.overlayCSV(self.csv_choice, self.file, progress)
             else:
-                out = YPD.overylayCSV(self.csv_choice, self.file, progress)
+                out = YPD.overlayCSV(self.csv_choice, self.file, progress)
             self.csvFileArray = []
             self.output_csv_path = self.csv_choice
         
@@ -304,6 +304,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         # Enable/Disable Buttons 
         self.ui.processDataButton.setEnabled(False)
         self.ui.DLMcomboBox.setEnabled(False)
+        self.ui.loadDataButton.setEnabled(False)
+        self.shortcut_load.setEnabled(False)
 
         # Enable shortcuts
         self.shortcut_expCSV.setEnabled(True)
@@ -354,8 +356,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.video_player_output.setPosition(position)
         
     def callback_playItem(self):
-        self.ui.loadDataButton.setEnabled(True)
-        self.shortcut_load.setEnabled(True)        
+        if not self.ui.saveButton.isEnabled():
+            self.ui.loadDataButton.setEnabled(True)
+            self.shortcut_load.setEnabled(True)        
         print(self.ui.videoListWidget.currentRow())
         
     def callback_DLMBox(self):
@@ -524,6 +527,10 @@ def revertFresh(self):
         self.number_sharks = 0
         self.number_dolhpins = 0
         self.number_surfers = 0
+
+        self.ui.label_Output_Surfers.setText(str(self.number_surfers))
+        self.ui.label_Output_Dolphins.setText(str(self.number_dolhpins))
+        self.ui.label_Output_Sharks.setText(str(self.number_sharks))  
 
 # The "main()" function, like a C program
 def main():
